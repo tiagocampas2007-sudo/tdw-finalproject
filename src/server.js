@@ -1,10 +1,10 @@
 import express from "express";
-import { connectDB } from "./config/db.js";
-
-import brandRoutes from "./routes/brand.routes.js";
-
 import cors from "cors";
 import dotenv from "dotenv";
+
+import { connectDB } from "./config/db.js";
+import routes from "./routes/index.js";
+
 dotenv.config();
 
 const app = express();
@@ -17,7 +17,8 @@ app.use(
 );
 
 app.use(express.json());
-app.use("/brands", brandRoutes);
+
+app.use("/api", routes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Servidor a funcionar" });

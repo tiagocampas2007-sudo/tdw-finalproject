@@ -72,14 +72,14 @@ export async function login(req, res) {
 
     const token = jwt.sign(
       { uid: user._id, role: user.role.role },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "supersecretkey123", // ← FALLBACK ajouté
       { expiresIn: "7d" }
     );
 
     res.cookie("session", token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: false,
+      secure: false, // ← true en production
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -93,6 +93,54 @@ export async function login(req, res) {
       },
     });
   } catch (err) {
+    console.error("🔥 LOGIN ERROR:", err); // ← LOG amélioré
     return res.status(500).json({ message: "Erro interno no login." });
+  }
+}
+
+// ✅ NOUVELLE FONCTION getMe
+export async function getMe(req, res) {
+  try {
+    // Récupère le token du cookie
+    const token = req.cookies.session;
+    
+    if (!token) {
+      return res.json({ 
+        user: null, 
+        authenticated: false,
+        message: "Não autenticado"
+      });
+    }
+
+    // Vérify  token JWT
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "supersecretkey123");
+    
+    // find user
+    const user = await User.findById(decoded.uid).populate("role");
+    
+    if (!user) {
+      return res.json({ 
+        user: null, 
+        authenticated: false,
+        message: "Usuário não encontrado"
+      });
+    }
+
+    return res.json({
+      authenticated: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role.role,
+      }
+    });
+  } catch (err) {
+    console.error(" getMe ERROR:", err);
+    return res.json({ 
+      user: null, 
+      authenticated: false,
+      message: "Token inválido"
+    });
   }
 }

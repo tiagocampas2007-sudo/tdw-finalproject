@@ -72,14 +72,14 @@ export async function login(req, res) {
 
     const token = jwt.sign(
       { uid: user._id, role: user.role.role },
-      process.env.JWT_SECRET || "supersecretkey123", // ← FALLBACK ajouté
+      process.env.JWT_SECRET || "supersecretkey123",
       { expiresIn: "7d" }
     );
 
     res.cookie("session", token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: false, // ← true en production
+      secure: false,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -93,26 +93,23 @@ export async function login(req, res) {
       },
     });
   } catch (err) {
-    console.error("🔥 LOGIN ERROR:", err); // ← LOG amélioré
+    console.error("🔥 LOGIN ERROR:", err);
     return res.status(500).json({ message: "Erro interno no login." });
   }
 }
 
-// ✅ NOUVELLE FONCTION getMe
 export async function getMe(req, res) {
   try {
-    // Récupère le token du cookie
-    const token = req.cookies.session;
+    const token = req.cookies?.session;
     
     if (!token) {
       return res.json({ 
         user: null, 
-        authenticated: false,
-        message: "Não autenticado"
+        authenticated: false 
       });
     }
 
-    // Vérify  token JWT
+    // Vérify token JWT
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "supersecretkey123");
     
     // find user
@@ -121,8 +118,7 @@ export async function getMe(req, res) {
     if (!user) {
       return res.json({ 
         user: null, 
-        authenticated: false,
-        message: "Usuário não encontrado"
+        authenticated: false 
       });
     }
 
@@ -136,11 +132,10 @@ export async function getMe(req, res) {
       }
     });
   } catch (err) {
-    console.error(" getMe ERROR:", err);
+    console.error("getMe ERROR:", err.message);
     return res.json({ 
       user: null, 
-      authenticated: false,
-      message: "Token inválido"
+      authenticated: false 
     });
   }
 }

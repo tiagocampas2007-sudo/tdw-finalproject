@@ -8,9 +8,9 @@ import {
 
 const router = express.Router();
 
-router.post("/", createOffice);          
-router.get("/", getAllOffices);          
-router.put("/:officeId", updateOffice);  
-router.delete("/:officeId", deleteOffice); 
+router.get("/", getAllOffices);
+router.post("/", createOffice);
+router.put("/:officeId", updateOffice);
+router.delete("/:officeId", deleteOffice);
 
 export default router;

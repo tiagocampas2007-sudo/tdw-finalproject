@@ -8,6 +8,11 @@ import {
 
 const router = express.Router();
 
+// AJOUTE CETTE LIGNE pour /api/vehicles
+router.get("/", (req, res) => {
+  res.json([]); // temporairement vide
+});
+
 router.post("/", createVehicle);
 router.get("/client/:clientId", getVehiclesByClient);
 router.put("/:id", updateVehicle);

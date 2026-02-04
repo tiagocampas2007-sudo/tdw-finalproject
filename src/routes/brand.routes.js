@@ -1,7 +1,9 @@
 import express from "express";
-import { getBrands } from "../controllers/brand.controller.js";
+import { getBrands, createBrands } from "../controllers/brand.controller.js";
 
 const router = express.Router();
+
+router.post("/", createBrands);
 
 router.get("/", getBrands);
 

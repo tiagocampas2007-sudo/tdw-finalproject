@@ -32,31 +32,26 @@ export const deleteModel = async (req, res) => {
 // ✅ createModels CORRIGÉ
 export const createModels = async (req, res) => {
   try {
-    console.log("📥 Recebido:", req.body.length, "modelos");
+    console.log("📦 BODY:", req.body);  // ← DIAGNOSTIC
+    console.log("📦 LENGTH:", req.body.length);
     
     const models = req.body;
+    
+    // Validation rapide
+    if (!Array.isArray(models) || models.length === 0) {
+      return res.status(400).json({ error: "Array de modelos vazio" });
+    }
+    
     await Model.deleteMany({});
-    
-    // ✅ SI ton JSON a déjà brandId → utilise direct
     const created = await Model.insertMany(models);
-    
-    console.log("✅ Criados:", created.length, "modelos");
     
     res.status(201).json({
       message: "✅ Modelos criados!",
-      count: created.length,
-      models: created.map(m => ({
-        id: m.id,
-        name: m.name,
-        slug: m.slug,
-        brandId: m.brandId
-      }))
+      count: created.length
     });
   } catch (err) {
-    console.error("🚨 CREATE MODELS ERROR:", err.message);
-    res.status(500).json({ 
-      message: "Erro ao criar modelos",
-      error: err.message 
-    });
+    console.error("🚨 ERROR:", err);
+    res.status(500).json({ error: err.message });
   }
 };
+

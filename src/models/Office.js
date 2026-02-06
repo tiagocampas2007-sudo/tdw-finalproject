@@ -18,10 +18,10 @@ const officeSchema = new mongoose.Schema(
       type: String
     },
     openingHours: {
-      type: String 
+      type: Number 
     },
     closingHours: {
-      type: String 
+      type: Number 
     }
   },
   { timestamps: true }

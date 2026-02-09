@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  getMyVehicles,      // ← AJOUTÉ ! OBLIGATOIRE
+  getMyVehicles,
   createVehicle,
   getVehiclesByClient,
   updateVehicle,
@@ -9,13 +9,10 @@ import {
 
 const router = express.Router();
 
-// ✅ REMPLACE la ligne temporaire vide par ÇA
-router.get("/", getMyVehicles);  // ← /api/vehicles → getMyVehicles (20 voitures)
-
-// Autres routes
+router.get("/", getMyVehicles);
 router.post("/", createVehicle);
 router.get("/client/:clientId", getVehiclesByClient);
-router.put("/:id", updateVehicle);
-router.delete("/:id", deleteVehicle);
+router.put("/:id", updateVehicle);     // ✅ :id = "1", "2"...
+router.delete("/:id", deleteVehicle);  // ✅ :id = "1", "2"...
 
 export default router;

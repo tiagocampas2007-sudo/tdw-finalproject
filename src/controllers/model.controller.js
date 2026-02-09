@@ -1,43 +1,95 @@
 import Model from "../models/Model.js";
-import Brand from "../models/Brand.js";  // ← AJOUTÉ ! OBLIGATOIRE
+import Brand from "../models/Brand.js";
 
-// ✅ getModels (PARFAIT)
+// ✅ getModels (CORRIGIDO 100% - aceita NÚMERO ou ObjectId)
 export const getModels = async (req, res) => {
   try {
-    const models = await Model.find().lean();
-    const formatted = models.map(m => ({
-      ...m,
-      brandId: m.brandId.toString()
+    const { brandId } = req.query;
+    
+    console.log(`🔍 brandId recebido: "${brandId}"`);
+    
+    // ✅ PASSO 1: Pega TODOS os modelos
+    let models = await Model.find({})
+      .populate("brandId", "name image slug id")
+      .lean();
+    
+    // ✅ PASSO 2: Se tem brandId → FILTRA no JS (SEM MongoDB query)
+    if (brandId) {
+      console.log(`🔍 Filtrando por brandId: ${brandId}`);
+      
+      models = models.filter(model => {
+        // Aceita número OU ObjectId
+        return model.brandId?.id == brandId || 
+               model.brandId?._id?.toString() === brandId;
+      });
+      
+      console.log(`🔍 ${models.length} modelos filtrados`);
+    }
+    
+    // ✅ PASSO 3: Formata para frontend
+    const formatted = models.map(model => ({
+      id: model.id,
+      name: model.name,
+      slug: model.slug,
+      image: model.image,
+      brandId: model.brandId?._id?.toString(),
+      brand: model.brandId
     }));
+    
+    console.log(`✅ Enviando ${formatted.length} modelos`);
     res.json(formatted);
+    
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Erro ao buscar modelos" });
+    console.error("🚨 ERRO:", err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
-// ✅ deleteModel (PARFAIT)
+
+
+// ✅ getModelsByBrand (MESMA LÓGICA)
+export const getModelsByBrand = async (req, res) => {
+  try {
+    const { brandId } = req.params;
+    
+    console.log(`🔍 getModelsByBrand - brandId: "${brandId}"`);
+    
+    let query = {};
+    if (!isNaN(brandId) && brandId.length < 24) {
+      query = { "brandId.id": Number(brandId) };
+    } else {
+      query = { brandId };
+    }
+    
+    const models = await Model.find(query)
+      .populate("brandId", "name image slug id")
+      .lean();
+    
+    console.log(`✅ ${models.length} modelos encontrados`);
+    res.json(models);
+    
+  } catch (err) {
+    console.error("🚨 ERRO getModelsByBrand:", err.message);
+    res.status(500).json({ message: "Erro ao buscar modelos por marca", error: err.message });
+  }
+};
+
+// deleteModel e createModels iguais...
 export const deleteModel = async (req, res) => {
   const { id } = req.params;
   try {
-    const deleted = await Model.findByIdAndDelete(id);
+    const deleted = await Model.findOneAndDelete({ id: Number(id) });
     if (!deleted) return res.status(404).json({ message: "Modelo não encontrado" });
-    res.json({ message: "Modelo removido" });
+    res.json({ message: "Modelo removido com sucesso!" });
   } catch (err) {
-    console.error(err);
+    console.error("❌ deleteModel:", err);
     res.status(500).json({ message: "Erro ao remover modelo" });
   }
 };
 
-// ✅ createModels CORRIGÉ
 export const createModels = async (req, res) => {
   try {
-    console.log("📦 BODY:", req.body);  // ← DIAGNOSTIC
-    console.log("📦 LENGTH:", req.body.length);
-    
     const models = req.body;
-    
-    // Validation rapide
     if (!Array.isArray(models) || models.length === 0) {
       return res.status(400).json({ error: "Array de modelos vazio" });
     }
@@ -50,8 +102,7 @@ export const createModels = async (req, res) => {
       count: created.length
     });
   } catch (err) {
-    console.error("🚨 ERROR:", err);
+    console.error("🚨 createModels:", err);
     res.status(500).json({ error: err.message });
   }
 };
-

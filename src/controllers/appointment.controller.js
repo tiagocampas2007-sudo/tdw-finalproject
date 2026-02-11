@@ -105,25 +105,34 @@ export const getMyAppointments = async (req, res) => {
 };
 
 // ✅ NOVA FUNÇÃO - Marcação da oficina do user logado (RESOLVE 404)
+// ✅ getOfficeAppointments - CORRIGIDO
 export const getOfficeAppointments = async (req, res) => {
   try {
-    console.log('👤 User logado:', req.user);
+    console.log('👤 req.user:', req.user);
     
-    const officeId = req.user.office?.toString();
+    const officeObjectId = req.user?.office;  // ← ObjectId da oficina
     
-    if (!officeId) {
+    if (!officeObjectId) {
       return res.status(400).json({ erro: "Utilizador sem oficina associada" });
     }
 
-    const appointments = await Appointment.find({ 
-      officeId: Number(officeId) 
-    }).populate('serviceId');
+    // ✅ BUSCA a oficina para PEGAR o NUMBER id
+    const office = await Office.findById(officeObjectId);
+    if (!office) {
+      return res.status(404).json({ erro: "Oficina não encontrada" });
+    }
 
-    console.log(`✅ ${appointments.length} marcações da oficina ${officeId}`);
+    const officeIdNumber = office.id;  // ← 1770842299574 (NUMBER!)
+    
+    console.log('🏢 officeId NUMBER:', officeIdNumber);
+    
+    const appointments = await Appointment.find({ officeId: officeIdNumber }).populate('serviceId');
+    console.log(`✅ ${appointments.length} marcações encontradas`);
+    
     res.json(appointments);
     
   } catch (err) {
-    console.error("❌ getOfficeAppointments:", err);
+    console.error("❌ ERRO:", err);
     res.status(500).json({ erro: err.message });
   }
 };

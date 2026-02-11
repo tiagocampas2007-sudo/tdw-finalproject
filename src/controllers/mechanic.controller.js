@@ -1,5 +1,6 @@
 import Mechanic from "../models/Mechanic.js";
 import User from "../models/User.js";
+import Office from "../models/Office.js";
 
 // ✅ Candidatar-se como mecânico
 export const applyMechanic = async (req, res) => {
@@ -82,25 +83,34 @@ export const deleteMechanic = async (req, res) => {
 };
 
 // ✅ NOVA FUNÇÃO - Mecânicos da oficina do user logado (RESOLVE 404)
+// ✅ getMechanicsByOffice - CORRIGIDO
 export const getMechanicsByOffice = async (req, res) => {
   try {
-    console.log('👤 User logado:', req.user);
+    console.log('👤 req.user:', req.user);
     
-    const officeId = req.user.office?.toString();
+    const officeObjectId = req.user?.office;
     
-    if (!officeId) {
+    if (!officeObjectId) {
       return res.status(400).json({ erro: "Utilizador sem oficina associada" });
     }
 
-    const mechanics = await Mechanic.find({ 
-      officeId: Number(officeId) 
-    }).populate('userId');
+    const office = await Office.findById(officeObjectId);
+    if (!office) {
+      return res.status(404).json({ erro: "Oficina não encontrada" });
+    }
 
-    console.log(`✅ ${mechanics.length} mecânicos na oficina ${officeId}`);
+    const officeIdNumber = office.id;  
+    
+    console.log('🏢 officeId NUMBER:', officeIdNumber);
+    
+    const mechanics = await Mechanic.find({ officeId: officeIdNumber }).populate('userId');
+    console.log(`✅ ${mechanics.length} mecânicos encontrados`);
+    
     res.json(mechanics);
     
   } catch (err) {
-    console.error("❌ getMechanicsByOffice:", err);
+    console.error("❌ ERRO:", err);
     res.status(500).json({ erro: err.message });
   }
 };
+

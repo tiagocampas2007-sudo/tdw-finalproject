@@ -2,45 +2,39 @@
 import Service from "../models/Service.js";
 import User from "../models/User.js";
 
-
 // 🔥 GET /api/services/office - Serviços da oficina do user logado
+// 🔥 GET /api/services/office - CORRIGIDO
 export const getOfficeServices = async (req, res) => {
   try {
-    console.log("🔧 GET serviços da oficina do user:", req.user?.uid);
+    console.log('👤 req.user:', req.user);
     
-    // Pega user logado (deve ser ADMIN de oficina)
-    const user = await User.findById(req.user.uid).populate("office");
-    if (!user?.office) {
+    const officeObjectId = req.user?.office;
+    
+    if (!officeObjectId) {
+      return res.status(400).json({ erro: "Utilizador sem oficina associada" });
+    }
+
+    // ✅ BUSCA a oficina para validar e pegar o NUMBER id
+    const office = await Office.findById(officeObjectId);
+    if (!office) {
       return res.status(404).json({ erro: "Oficina não encontrada" });
     }
 
-    console.log("🔍 Oficina do user:", user.office._id);
+    const officeIdNumber = office.id;  // ← 1770842299574 (NUMBER!)
     
-    // Busca serviços DESSA oficina
-    const services = await Service.find({ officeId: user.office._id });
+    console.log('🏢 officeId NUMBER:', officeIdNumber);
     
-    // Formato frontend
-    const formattedServices = services.map(service => ({
-      _id: service._id,
-      name: service.name,
-      office: { 
-        name: user.office.name,  // Nome real da oficina
-        _id: user.office._id 
-      },
-      description: service.description || '',
-      durationMinutes: service.durationMinutes || 60,
-      price: service.price || 50,
-      serviceTypeId: { slug: 'default' }
-    }));
+    const services = await Service.find({ officeId: officeIdNumber });
+    console.log(`✅ ${services.length} serviços encontrados`);
     
-    console.log("✅ Enviando", formattedServices.length, "serviços");
-    res.json(formattedServices);
+    res.json(services);
     
   } catch (err) {
-    console.error("❌ Erro getOfficeServices:", err);
+    console.error("❌ ERRO:", err);
     res.status(500).json({ erro: err.message });
   }
 };
+
 
 
 // Listar TODOS os serviços (público)

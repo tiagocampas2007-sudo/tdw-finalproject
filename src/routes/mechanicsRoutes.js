@@ -1,25 +1,24 @@
+// mechanicsRoutes.js (COMPLETO)
 import express from "express";
+import {
+  createMechanic,
+  updateMechanic,
+  deleteMechanic,
+  applyMechanic,
+  getMechanicsByOffice
+} from "../controllers/mechanic.controller.js";
+import authMiddleware from "../middleware/auth.js";
+
 const router = express.Router();
 
-// ✅ ROTA ADICIONADA AQUI
-router.post("/apply", (req, res) => {
-  try {
-    const payload = req.body;
-    console.log("Candidatura recebida:", payload);
-    
-    // TODO: A tua lógica de guardado na base de dados
-    // Por agora, resposta de teste
-    res.json({ 
-      message: "Candidatura enviada com sucesso", 
-      mechanicId: "12345" 
-    });
-  } catch (error) {
-    console.error("Erro:", error);
-    res.status(500).json({ error: "Erro no servidor" });
-  }
-});
+// ✅ ROTA CRÍTICA PRIMEIRA (resolve 404)
+router.get("/by-office", authMiddleware, getMechanicsByOffice);
 
-// Rota existente (mantém-la)
+// ✅ Rotas restantes
+router.post("/apply", authMiddleware, applyMechanic);
+router.post("/", createMechanic);
+router.put("/:mechanicId", authMiddleware, updateMechanic);
+router.delete("/:mechanicId", authMiddleware, deleteMechanic);
 router.get("/hire-notification", (req, res) => {
   res.json({ hasPendingHire: false, notifications: [] });
 });
